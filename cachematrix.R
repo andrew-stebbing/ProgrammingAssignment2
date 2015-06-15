@@ -23,22 +23,23 @@ makeCacheMatrix <- function(x = matrix()) {
         ## initialize variables
         inverse <- NULL
         
-        cache_inverse <- function(inverted) {
-          x <<- inverted
-          inverse <<- NULL
-        }
-        # a function that just returns the supplied matrix
+        ## returns the supplied matrix
         get_matrix <- function() x
-        
-        solve_inverse <- function(inverse) inverse <<- mean
-        
-        # function that just returns the inverse of matrix 'x'
+
+        ## cache the inverse
+        cache_inverse <- function(inverted) {
+           inverse <<- inverted
+        }
+       
+        # returns the cached inverse of matrix 'x'
         get_inverse <- function() inverse
+        
+        #solve_inverse <- function(inverse) inverse <<- inverse    
   
         ## finally, return our list containing the 4 functions
         list(cache_inverse = cache_inverse,
              get_matrix = get_matrix,
-             solve_inverse = solve_inverse,
+             #solve_inverse = solve_inverse,
              get_inverse = get_inverse)
 }
 
@@ -52,7 +53,7 @@ cacheSolve <- function(x, ...) {
         ## x will be our special 'matrix' but is really a list
         ## containing 4 functions 
   
-        inverse <- x$get_inverse
+        inverse <- x$get_inverse()
         
         ## test to see if the inverse is already cached
         ## and, if so, just return it
@@ -62,7 +63,7 @@ cacheSolve <- function(x, ...) {
         }
         
         ## if inverse not cached we need to obtain the acutal matrix
-        mat <- x$get_matrix
+        mat <- x$get_matrix()
         
         ## calculate the inverse
         inverse <- solve(mat)
