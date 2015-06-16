@@ -1,29 +1,32 @@
-## TODO
-## At present the test to see if the inverse exists in 'cacheSolve'
-## is always returning TRUE and then just returning the function defn
-## there is therefore a problem with 'makeCacheMatrix'
+## These are a pair of complementary functions for calculating
+## and caching the inverse of an invertible matrix
 
+## The first, 'makeCacheMatrix', provides a wrapper around a matrix
+## which provides 3 functions: One which just returns the matrix and
+## two 'helper' functions: one which caches the matrix's inverse
+## and a second which returns that cached result.
 
+## The second, 'cacheSolve', is then used in place of the base class
+## solve() method to calculate or retreive the inverse matrix.
+## This function uses the 'helper' methods from 'makeCacheMatrix'
+## to either retrieve a cached inverse or, if there isn't one, then
+## the inverse is calculated and the result cached.
 
-
-##  This is a pair of functions that cache the inverse of a matrix.
-
-## For an easy introduction in why you would use the inverse
+## For an easy introduction on why you would use the inverse
 ## of a matrix and how you caluclate it see
 ## http://www.purplemath.com/modules/mtrxinvr.htm
 
 
-
-## This function creates a special "matrix" object
-## that can cache its inverse.
-## the single argument to the function must be a valid matrix.
-## if not, the R attempts to coerce it to a matrix
+## makeCacheMatrix
+## arguments: an invertible matrix
+## Returns a 'list' of functions.
 
 makeCacheMatrix <- function(x = matrix()) {
-        ## initialize variables
+        ## initialize local 'inverse' to NULL
+        ## forces a search to global environment.
         inverse <- NULL
         
-        ## returns the supplied matrix
+        ## return the supplied matrix
         get_matrix <- function() x
 
         ## cache the inverse
@@ -31,28 +34,24 @@ makeCacheMatrix <- function(x = matrix()) {
            inverse <<- inverted
         }
        
-        # returns the cached inverse of matrix 'x'
+        # return the cached inverse of matrix 'x'
         get_inverse <- function() inverse
-        
-        #solve_inverse <- function(inverse) inverse <<- inverse    
   
-        ## finally, return our list containing the 4 functions
+        ## Return a list containing the 3 functions
         list(cache_inverse = cache_inverse,
              get_matrix = get_matrix,
-             #solve_inverse = solve_inverse,
              get_inverse = get_inverse)
 }
 
+## cacheSolve
+## arguments: an invertible matrix 'wrapped' inside 'makeCacheMatrix'
+## Returns the inverse of the matrix.
 
-## This function computes the inverse of the special
-## "matrix" returned by `makeCacheMatrix` above. If the inverse has
-## already been calculated (and the matrix has not changed), then
-## `cacheSolve` should retrieve the inverse from the cache.
+## To be used instead of solve() to obtain the inverse
 
 cacheSolve <- function(x, ...) {
-        ## x will be our special 'matrix' but is really a list
-        ## containing 4 functions 
   
+        ## obtain the inverse
         inverse <- x$get_inverse()
         
         ## test to see if the inverse is already cached
@@ -65,12 +64,28 @@ cacheSolve <- function(x, ...) {
         ## if inverse not cached we need to obtain the acutal matrix
         mat <- x$get_matrix()
         
-        ## calculate the inverse
+        ## calculate its inverse
         inverse <- solve(mat)
         
-        ## cache this inverse before we return
+        ## and cache it
         x$cache_inverse(inverse)
   
-        ## Return a matrix that is the inverse of 'x'
+        ## Return a matrix that is the inverse of the original
         inverse
 }
+
+## Sample use
+# m <- matrix( c(1,1,1,1,2,1,0,1,2), nrow=3, ncol=3, byrow=TRUE)
+# m_cache <- makeCacheMatrix(m)
+# cacheSolve(m_cache)
+
+# First time, when there is no cached result, output is:
+#   [,1] [,2] [,3]
+# [1,]  1.5 -0.5 -0.5
+# [2,] -1.0  1.0  0.0
+# [3,]  0.5 -0.5  0.5
+ 
+# On subsequent calls to 'cacheSolve(m_cache)' the message
+# 'getting cached data'
+# is printed prior to the inverse
+# indicating that the cached inverse is being returned.
